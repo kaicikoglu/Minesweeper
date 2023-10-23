@@ -1,6 +1,6 @@
 package de.htwg.se.minesweeper.controller.controllerComponent.controllerBaseImpl
 
-import com.google.inject.{Guice, Inject}
+import com.google.inject.{Guice, Inject, Injector}
 import de.htwg.se.minesweeper.controller.controllerComponent.*
 import de.htwg.se.minesweeper.controller.controllerComponent.controllerBaseImpl.*
 import de.htwg.se.minesweeper.model.FieldComponent.*
@@ -10,9 +10,9 @@ import de.htwg.se.minesweeper.util.{DifficultyFactory, Event, Observable, UndoMa
 import de.htwg.se.minesweeper.{MinesweeperJson, MinesweeperXML}
 
 case class Controller @Inject() (var field: FieldInterface) extends ControllerInterface with Observable:
-  val undoManager = new UndoManager[FieldInterface]
-  val file = Guice.createInjector(new MinesweeperJson)
-  val fileIO = file.getInstance(classOf[FileIOInterface])
+  private val undoManager = new UndoManager[FieldInterface]
+  val file: Injector = Guice.createInjector(new MinesweeperJson)
+  private val fileIO = file.getInstance(classOf[FileIOInterface])
 
   def createNewField(string: String): FieldInterface =
     string match {

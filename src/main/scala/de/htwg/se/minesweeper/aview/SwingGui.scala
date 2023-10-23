@@ -1,15 +1,13 @@
 package de.htwg.se.minesweeper.aview
 
 import de.htwg.se.minesweeper.controller.controllerComponent.ControllerInterface
-import de.htwg.se.minesweeper.model.FieldComponent.FieldBaseImpl.{Coordinates, Field, Stone}
+import de.htwg.se.minesweeper.model.FieldComponent.FieldBaseImpl.{Coordinates, Stone}
 import de.htwg.se.minesweeper.util.{Event, Observer}
 
-import java.awt.Color
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
-import javax.swing.{BorderFactory, ImageIcon}
-import javax.swing.border.EmptyBorder
+import javax.swing.ImageIcon
 import scala.swing.*
 import scala.swing.event.*
 
@@ -68,7 +66,7 @@ class SwingGui(controller: ControllerInterface) extends Frame with Observer:
           add(new CellPanel(controller.field.rows, controller.field.cols), BorderPanel.Position.Center)
         }
 
-  class CellPanel(x: Int, y: Int) extends GridPanel(x, y):
+  private class CellPanel(x: Int, y: Int) extends GridPanel(x, y):
     var i = 0
     (0 until x)
       .map(a =>
@@ -79,11 +77,11 @@ class SwingGui(controller: ControllerInterface) extends Frame with Observer:
           )
       )
 
-  class CellButton(x: Int, y: Int, var stone: String) extends Button(stone):
+  private class CellButton(x: Int, y: Int, var stone: String) extends Button(stone):
     this.peer.setText("")
-    var buttonIcon: BufferedImage = ImageIO.read(new File("src/main/resources/iconsEasy/bomb.png"))
+    private var buttonIcon: BufferedImage = ImageIO.read(new File("src/main/resources/iconsEasy/bomb.png"))
     buttonIcon.getScaledInstance(10, 10, 10)
-    if (this.stone.equals("✴")) then
+    if this.stone.equals("✴") then
       controller.field.rows match {
         case 8  => buttonIcon = ImageIO.read(new File("src/main/resources/iconsEasy/bomb.png"))
         case 16 => buttonIcon = ImageIO.read(new File("src/main/resources/iconsMedium/bomb.png"))
@@ -91,7 +89,7 @@ class SwingGui(controller: ControllerInterface) extends Frame with Observer:
           buttonIcon = ImageIO.read(new File("src/main/resources/iconsHard/bomb.png"));
       }
       this.peer.setIcon(new ImageIcon(buttonIcon))
-    else if (this.stone.equals("\u2691")) then
+    else if this.stone.equals("\u2691") then
       controller.field.rows match {
         case 8  => buttonIcon = ImageIO.read(new File("src/main/resources/iconsEasy/flagged.png"))
         case 16 => buttonIcon = ImageIO.read(new File("src/main/resources/iconsMedium/flagged.png"))
@@ -99,16 +97,16 @@ class SwingGui(controller: ControllerInterface) extends Frame with Observer:
           buttonIcon = ImageIO.read(new File("src/main/resources/iconsHard/flagged.png"));
       }
       this.peer.setIcon(new ImageIcon(buttonIcon))
-    else if (this.stone.equals("\u25A0")) then
+    else if this.stone.equals("\u25A0") then
       controller.field.rows match {
         case 8  => buttonIcon = ImageIO.read(new File("src/main/resources/iconsEasy/facingDown.png"))
         case 16 => buttonIcon = ImageIO.read(new File("src/main/resources/iconsMedium/facingDown.png"))
         case 32 =>
-          buttonIcon = ImageIO.read(new File("src/main/resources/iconsHard/facingDown.png"));
+          buttonIcon = ImageIO.read(new File("src/main/resources/iconsHard/facingDown.png"))
           preferredSize.setSize(600, 1200);
       }
       this.peer.setIcon(new ImageIcon(buttonIcon))
-    else if (this.stone.equals("\u25A1")) then
+    else if this.stone.equals("\u25A1") then
       controller.field.rows match {
         case 8  => buttonIcon = ImageIO.read(new File("src/main/resources/iconsEasy/0.png"))
         case 16 => buttonIcon = ImageIO.read(new File("src/main/resources/iconsMedium/0.png"))

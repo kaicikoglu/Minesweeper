@@ -11,12 +11,15 @@ lazy val root = project
     libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.15" % "test",
     libraryDependencies += ("org.scala-lang.modules" %% "scala-swing" % "3.0.0")
       .cross(CrossVersion.for3Use2_13),
+    libraryDependencies += "org.apache.commons" % "commons-lang3" % "3.12.0",
     libraryDependencies += "com.google.inject" % "guice" % "5.1.0",
     libraryDependencies += ("net.codingwell" %% "scala-guice" % "6.0.0")
       .cross(CrossVersion.for3Use2_13),
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.1.0",
     libraryDependencies += ("com.typesafe.play" %% "play-json" % "2.10.0-RC5")
       .cross(CrossVersion.for3Use2_13),
+    libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.15.3",
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.15.1",
     libraryDependencies ++= {
       // Determine OS version of JavaFX binaries
       lazy val osName = System.getProperty("os.name") match {
@@ -45,9 +48,11 @@ lazy val root = project
   )
   .enablePlugins(JacocoCoverallsPlugin)
 
-//falls es zu Problemem mit Parallelität kommt
-Test / parallelExecution := false
+Compile / unmanagedResourceDirectories += baseDirectory.value / "src" / "main" / "resources"
+
+assembly / assemblyJarName := "Minesweeper-assembly-0.1.0-SNAPSHOT.jar"
+
 assembly / assemblyMergeStrategy := {
-  case PathList("META-INF", _*) => MergeStrategy.discard
-  case _                        => MergeStrategy.first
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x                             => MergeStrategy.first
 }
