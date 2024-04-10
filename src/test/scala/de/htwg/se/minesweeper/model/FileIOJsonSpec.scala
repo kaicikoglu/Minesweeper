@@ -25,7 +25,7 @@ class FileIOJsonSpec extends AnyWordSpec {
     "fieldToJson is called" should {
       "transform the field to json" in {
         val field = new Field(1, 1)
-        Json.toJson(json.fieldToJson(field)).toString should be(
+        Json.toJson(json.gameToJson(field)).toString should be(
           "{\"field\":{\"sizeRow\":1,\"sizeCol\":1,\"cells\":" +
             "[{\"row\":0,\"col\":0,\"cell\":{\"first\":\"■\",\"second\":\"□\",\"third\":0}}]}}"
         )

@@ -1,7 +1,7 @@
 package de.htwg.se.minesweeper.model.FieldComponent.FieldBaseImpl
 
 enum Stone(stringRepresentation: String):
-  override def toString = stringRepresentation
+  override def toString: String = stringRepresentation
   case Bomb extends Stone("✴")
   case EmptyTracked extends Stone("\u25A1")
   case NotTracked extends Stone("\u25A0")

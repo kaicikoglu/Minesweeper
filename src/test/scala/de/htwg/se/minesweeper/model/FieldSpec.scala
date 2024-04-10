@@ -64,16 +64,16 @@ class FieldSpec extends AnyWordSpec {
         "┌─┐" +
         "\u25A0" +
         "└─┘" in {
-          field1.matchfield(1) should be("  0 " + eol + "  ┌─┐" + eol + "0 │\u25A0│ 0" + eol + "  └─┘" + eol + "  0 ")
+          field1.matchfield(1) should be("  0 " + eol + "┌─┐" + eol + "0 │\u25A0│ 0" + eol + "└─┘" + eol + "  0 ")
         }
       "have a matchfield with default parameters" in {
         field1.matchfield() should be(
-          "    0   " + eol + "  ┌───┐" + eol + "0 │ ■ │ 0" + eol + "  └───┘" + eol + "    0   "
+          "    0   " + eol + "┌───┐" + eol + "0 │ ■ │ 0" + eol + "└───┘" + eol + "    0   "
         )
       }
       "have a toString function" in {
         field1.toString should be(
-          "    0   " + eol + "  ┌───┐" + eol + "0 │ ■ │ 0" + eol + "  └───┘" + eol + "    0   "
+          "    0   " + eol + "┌───┐" + eol + "0 │ ■ │ 0" + eol + "└───┘" + eol + "    0   "
         )
       }
       "revealValue function used" should {

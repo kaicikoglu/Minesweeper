@@ -17,8 +17,8 @@ class DifficultySpec extends AnyWordSpec {
     }
     var field3 = DifficultyFactory("3")
     "create a field in hard mode" in {
-      field3.run.rows should be(32)
-      field3.run.cols should be(16)
+      field3.run.rows should be(24)
+      field3.run.cols should be(24)
     }
   }
 }

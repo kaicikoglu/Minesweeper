@@ -1,16 +1,11 @@
 package de.htwg.se.minesweeper.model.FileIOComponent.fileIoXmlImpl
 
-import com.google.inject.Guice
 import de.htwg.se.minesweeper.model.FieldComponent.*
 import de.htwg.se.minesweeper.model.FieldComponent.FieldBaseImpl.*
 import de.htwg.se.minesweeper.model.FileIOComponent.*
-import de.htwg.se.minesweeper.util.ReplaceStrategy
-import de.htwg.se.minesweeper.{MinesweeperModuleEasy, MinesweeperModuleHard, MinesweeperModuleMedium}
 
 import java.io.*
-import scala.xml.Equality.asRef
-import scala.xml.NodeSeq.fromSeq
-import scala.xml.{NodeSeq, PrettyPrinter, XML}
+import scala.xml.{Elem, NodeSeq, PrettyPrinter, XML}
 
 class FileIOXml extends FileIOInterface:
 
@@ -35,7 +30,7 @@ class FileIOXml extends FileIOInterface:
       val first: Stone = field.toStone((cell \ "first").text.trim)
       val second: Stone = field.toStone((cell \ "second").text.trim)
       val third: Int = (cell \ "third").text.trim.toInt
-      field = field.setCell(row, col, (first, second, third))
+      field = field.setCell(row)(col)(first, second, third)
     field
 
   override def save(field: FieldInterface): Unit =
@@ -45,7 +40,7 @@ class FileIOXml extends FileIOInterface:
     pw.write(xml)
     pw.close()
 
-  def fieldToXml(field: FieldInterface) =
+  def fieldToXml(field: FieldInterface): Elem =
     <field rowSize={field.rows.toString}>
       {
       for {
@@ -55,7 +50,7 @@ class FileIOXml extends FileIOInterface:
     }
     </field>
 
-  def cellToXml(field: FieldInterface, row: Int, col: Int) =
+  def cellToXml(field: FieldInterface, row: Int, col: Int): Elem =
     <cell row ={row.toString} col ={col.toString}>{
       <first>{
         field.getCell(row, col)._1

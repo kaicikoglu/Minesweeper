@@ -4,12 +4,10 @@ import de.htwg.se.minesweeper.model.FieldComponent.*
 import de.htwg.se.minesweeper.model.FieldComponent.FieldBaseImpl.*
 import de.htwg.se.minesweeper.util.*
 
-import scala.collection.mutable.ListBuffer
-
 class DoCommand(coordinates: Coordinates) extends Command[FieldInterface] {
 
-  var fieldUndo: Option[FieldInterface] = None
-  var fieldRedo: Option[FieldInterface] = None
+  private var fieldUndo: Option[FieldInterface] = None
+  private var fieldRedo: Option[FieldInterface] = None
 
   override def noStep(field: FieldInterface): FieldInterface = field
 

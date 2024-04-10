@@ -87,7 +87,7 @@ class ControllerSpec extends AnyWordSpec {
       "create a new field of the difficulty given as parameter" in {
         controller.createNewField("1").rows should be(8)
         controller.createNewField("2").rows should be(16)
-        controller.createNewField("3").rows should be(32)
+        controller.createNewField("3").rows should be(24)
       }
     }
   }

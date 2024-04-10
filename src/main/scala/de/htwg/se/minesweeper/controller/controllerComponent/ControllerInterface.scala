@@ -1,8 +1,9 @@
 package de.htwg.se.minesweeper.controller.controllerComponent
 
-import de.htwg.se.minesweeper.model.FieldComponent.FieldBaseImpl.Coordinates
 import de.htwg.se.minesweeper.model.FieldComponent.*
+import de.htwg.se.minesweeper.model.FieldComponent.FieldBaseImpl.{Coordinates, Stone}
 import de.htwg.se.minesweeper.util.Observable
+import play.api.libs.json.JsObject
 
 trait ControllerInterface extends Observable:
   def doAndPublish(doThis: Coordinates => FieldInterface, coordinates: Coordinates): Unit
@@ -20,3 +21,5 @@ trait ControllerInterface extends Observable:
   def load: FieldInterface
   def createNewField(string: String): FieldInterface
   def flagsLeft(): Int
+  def gameToJson: JsObject
+  def getCell(x: Int, y: Int): (Stone, Stone, Int)

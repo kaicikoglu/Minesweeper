@@ -1,17 +1,19 @@
 package de.htwg.se.minesweeper.controller.controllerComponent.controllerBaseImpl
 
 import com.google.inject.{Guice, Inject, Injector}
+import de.htwg.se.minesweeper.MinesweeperJson
 import de.htwg.se.minesweeper.controller.controllerComponent.*
 import de.htwg.se.minesweeper.controller.controllerComponent.controllerBaseImpl.*
 import de.htwg.se.minesweeper.model.FieldComponent.*
 import de.htwg.se.minesweeper.model.FieldComponent.FieldBaseImpl.*
 import de.htwg.se.minesweeper.model.FileIOComponent.*
+import de.htwg.se.minesweeper.model.FileIOComponent.fileIoJsonImpl.FileIOJson
 import de.htwg.se.minesweeper.util.{DifficultyFactory, Event, Observable, UndoManager}
-import de.htwg.se.minesweeper.{MinesweeperJson, MinesweeperXML}
+import play.api.libs.json.JsObject
 
 case class Controller @Inject() (var field: FieldInterface) extends ControllerInterface with Observable:
-  private val undoManager = new UndoManager[FieldInterface]
   val file: Injector = Guice.createInjector(new MinesweeperJson)
+  private val undoManager = new UndoManager[FieldInterface]
   private val fileIO = file.getInstance(classOf[FileIOInterface])
 
   def createNewField(string: String): FieldInterface =
@@ -26,6 +28,15 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
         field = DifficultyFactory.apply("3").run
         setBombs(calculateBombAmount())
     }
+
+  def calculateBombAmount(): Int =
+    field.calculateBombAmount()
+
+  def setBombs(bombAmount: Int): FieldInterface =
+    field = field.setBombs(bombAmount)
+    field = field.showValues()
+    notifyObservers(Event.Move)
+    field
 
   def doAndPublish(doThis: Coordinates => FieldInterface, coordinates: Coordinates): Unit =
     field = doThis(coordinates)
@@ -50,15 +61,6 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
   def noStep(move: Coordinates): FieldInterface =
     undoManager.noStep(field, DoCommand(move))
 
-  def calculateBombAmount(): Int =
-    field.calculateBombAmount()
-
-  def setBombs(bombAmount: Int): FieldInterface =
-    field = field.setBombs(bombAmount)
-    field = field.showValues()
-    notifyObservers(Event.Move)
-    field
-
   def setFlag(coordinates: Coordinates): FieldInterface =
     undoManager.doFlag(field, DoCommand(coordinates))
 
@@ -72,5 +74,11 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
 
   def flagsLeft(): Int =
     field.flagsLeft()
+
+  override def getCell(x: Int, y: Int): (Stone, Stone, Int) =
+    field.getCell(x, y)
+  override def gameToJson: JsObject =
+    val file = new FileIOJson
+    file.gameToJson(this.field)
 
   override def toString: String = field.toString

@@ -18,7 +18,7 @@ private class Medium extends Difficulty {
 
 private class Hard extends Difficulty {
   override def run: Field =
-    Field(matrix = new Matrix[Stone, Stone, Int](32, 16, (Stone.NotTracked, Stone.EmptyTracked, 0)))
+    Field(matrix = new Matrix[Stone, Stone, Int](24, 24, (Stone.NotTracked, Stone.EmptyTracked, 0)))
 }
 
 object DifficultyFactory {
