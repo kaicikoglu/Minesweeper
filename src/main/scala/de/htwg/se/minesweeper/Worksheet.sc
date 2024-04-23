@@ -1,6 +1,5 @@
 
-import de.htwg.se.minesweeper.model.FieldComponent.FieldBaseImpl.Field
-import de.htwg.se.minesweeper.util.RevealStrategy
+import de.htwg.se.minesweeper.model.FieldComponent.FieldBaseImpl.{Field, RevealStrategy, Stone}
 
 import java.io.{File, PrintWriter}
 import scala.xml.NodeSeq.{fromSeq, seqToNodeSeq}
