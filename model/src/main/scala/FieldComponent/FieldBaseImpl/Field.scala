@@ -28,12 +28,12 @@ case class Field(matrix: Matrix[Stone, Stone, Int]) extends FieldInterface:
         (0 until rows)
           .map(x =>
             if x < 10 then x.toString + " " + cells(x, cellWidth) + " " + x.toString + "\n"
-            else x.toString + " " + cells(x, cellWidth) + " " + x.toString + "\n"
+            else x.toString + cells(x, cellWidth) + " " + x.toString + "\n"
           )
           .mkString(
-            firstBar(cellWidth, cols),
-            bar(cellWidth, cols),
-            lastBar(cellWidth, cols)
+            "  " + firstBar(cellWidth, cols),
+            "  " + bar(cellWidth, cols),
+            "  " + lastBar(cellWidth, cols)
           )
       )
       .+(
