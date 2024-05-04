@@ -24,14 +24,13 @@ class FileIOJson extends FileIOInterface:
       case 32 =>
         field = new Field(32, 16)
     }
-    ( 0 until sizeRow * sizeCol).map(index =>
+    for (index <- 0 until sizeRow * sizeCol)
       val row = (json \\ "row")(index).as[Int]
       val col = (json \\ "col")(index).as[Int]
       val first = field.toStone((json \\ "first")(index).as[String])
       val second = field.toStone((json \\ "second")(index).as[String])
       val third = (json \\ "third")(index).as[Int]
-      field.setCell(row, col, (first, second, third))
-    )
+      field = field.setCell(row, col, (first, second, third))
     source.close()
     field
 
