@@ -51,8 +51,7 @@ class TUI(controller: ControllerInterface) extends Observer:
         val chars = input.toCharArray
         val helpFlag = chars(2).toString
         helpFlag match
-          case "f" =>
-          case "F" =>
+          case "F" | "f" =>
             parseInput(input) match
               case None       => System.exit(0)
               case Some(move) => controller.doAndPublish(controller.setFlag, move);

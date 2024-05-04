@@ -1,6 +1,7 @@
 package FieldComponent
 
 import FieldComponent.FieldBaseImpl.*
+import play.api.libs.json.JsObject
 
 trait FieldInterface:
   val cols: Int
@@ -23,3 +24,5 @@ trait FieldInterface:
   def matrix: Matrix[Stone, Stone, Int]
   def flagsLeft(): Int
   def toStone(string: String): Stone
+  def toJson: JsObject
+  def jsonToField(jsonString: String): FieldInterface

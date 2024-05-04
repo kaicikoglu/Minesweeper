@@ -1,6 +1,7 @@
 package FieldComponent.FieldBaseImpl
 
 import FieldComponent.FieldInterface
+import play.api.libs.json.{JsObject, JsValue, Json}
 
 import scala.annotation.tailrec
 import scala.language.postfixOps
@@ -183,6 +184,52 @@ case class Field(matrix: Matrix[Stone, Stone, Int]) extends FieldInterface:
     val help = detectBombs().size - detectFlags().size
     help
 
+  override def toJson: JsObject =
+    Json.obj(
+      "field" -> Json.obj(
+        "sizeRow" -> rows,
+        "sizeCol" -> cols,
+        "cells" -> Json.toJson(
+          for {
+            row <- 0 until rows
+            col <- 0 until cols
+          } yield {
+            Json.obj(
+              "row" -> row,
+              "col" -> col,
+              "cell" -> Json.obj(
+                "first" -> Json.toJson(getCell(row, col)._1.toString),
+                "second" -> Json.toJson(getCell(row, col)._2.toString),
+                "third" -> Json.toJson(getCell(row, col)._3)
+              )
+            )
+          }
+        )
+      )
+    )
+
+  def jsonToField(jsonString: String): FieldInterface =
+    var field: FieldInterface = null
+    val json: JsValue = Json.parse(jsonString)
+    val sizeRow = (json \ "field" \ "sizeRow").get.toString.toInt
+    val sizeCol = (json \ "field" \ "sizeCol").get.toString.toInt
+    sizeRow match {
+      case 8 =>
+        field = new Field(8, 8)
+      case 16 =>
+        field = new Field(16, 16)
+      case 32 =>
+        field = new Field(32, 16)
+    }
+    for (index <- 0 until sizeRow * sizeCol)
+      val row = (json \\ "row")(index).as[Int]
+      val col = (json \\ "col")(index).as[Int]
+      val first = field.toStone((json \\ "first")(index).as[String])
+      val second = field.toStone((json \\ "second")(index).as[String])
+      val third = (json \\ "third")(index).as[Int]
+      field = field.setCell(row, col, (first, second, third))
+    field
+  
   @tailrec
   private def setBombsR(bombNumber: Int, field: Field, count: Int = 0): Field =
     val row = r.nextInt(field.rows)

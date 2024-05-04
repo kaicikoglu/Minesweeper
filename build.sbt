@@ -13,21 +13,16 @@ lazy val commonSettings = Seq(
   libraryDependencies += ("net.codingwell" %% "scala-guice" % "7.0.0")
     .cross(CrossVersion.for3Use2_13),
   libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.3.0",
-  libraryDependencies += ("com.typesafe.play" %% "play-json" % "2.10.4")
+  libraryDependencies += ("com.typesafe.play" %% "play-json" % "2.10.5")
     .cross(CrossVersion.for3Use2_13),
   libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.17.0",
   libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.17.0",
-  libraryDependencies ++= {
-    // Determine OS version of JavaFX binaries
-    lazy val osName = System.getProperty("os.name") match {
-      case n if n.startsWith("Linux")   => "linux"
-      case n if n.startsWith("Mac")     => "mac"
-      case n if n.startsWith("Windows") => "win"
-      case _                            => throw new Exception("Unknown platform!")
-    }
-    Seq("base", "controls", "fxml", "graphics", "media", "swing", "web")
-      .map(m => "org.openjfx" % s"javafx-$m" % "16" classifier osName)
-  },
+  libraryDependencies ++= Seq(
+    "com.typesafe.akka" %% "akka-http" % "10.5.3",
+    "com.typesafe.akka" %% "akka-http-spray-json" % "10.5.3",
+    "com.typesafe.akka" %% "akka-actor-typed" % "2.8.5",
+    "com.typesafe.akka" %% "akka-stream" % "2.8.5"
+  ),
   jacocoReportSettings := JacocoReportSettings(
     "Jacoco Coverage Report",
     None,
