@@ -11,7 +11,6 @@ class TUI(controller: ControllerInterface) extends Observer:
   controller.add(this)
   private var continue = true
   def run(): Any =
-    controller.setBombs(controller.calculateBombAmount())
     getInputAndPrintLoop
 
   override def update(e: Event): Unit =
