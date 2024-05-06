@@ -1,5 +1,6 @@
 package api
 
+import FieldComponent.FieldBaseImpl.DifficultyFactory
 import FieldComponent.FieldInterface
 import akka.http.scaladsl.server.Directives.*
 import akka.http.scaladsl.server.Route
@@ -32,9 +33,9 @@ class ModelApi(var field: FieldInterface) {
       } ~
       path("setBombs") {
         post {
-          parameters("amount".as[Int]) { amount =>
-            field = field.setBombs(amount)
-            field = field.showValues()
+          entity(as[String]) { json =>
+            val jsonValue = Json.parse(json)
+            val bombAmount = (jsonValue \ "bombAmount").as[Int]
             complete(field.toJson.toString())
           }
         }
@@ -56,7 +57,18 @@ class ModelApi(var field: FieldInterface) {
       } ~
       path("flagsLeft") {
         get {
-          complete(Json.obj("flags" -> field.flagsLeft().toString).toString())
+          complete(Json.obj("flagsLeft" -> field.flagsLeft()).toString())
+        }
+      } ~
+      path ("createNew") {
+        post {
+          parameters("x".as[String]) {
+            x =>
+              field = DifficultyFactory.apply(x).run
+              field = field.setBombs(field.calculateBombAmount())
+              field = field.showValues()
+              complete(field.toJson.toString())
+          }
         }
       }
   }
