@@ -1,7 +1,7 @@
 package controllerComponent.controllerBaseImpl
 
-import FieldComponent.FieldBaseImpl.*
 import FieldComponent.*
+import FieldComponent.FieldBaseImpl.*
 import FileIOComponent.FileIOInterface
 import FileIOComponent.fileIoJsonImpl.FileIOJson
 import com.google.inject.{Guice, Inject, Injector}
@@ -111,8 +111,42 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
   def quit(): Unit = notifyObservers(Event.Quit)
 
   def revealValue(move: Coordinates): FieldInterface =
-    if field.getCell(move.x, move.y)._1 != Stone.NotTracked then undoManager.noStep(field, DoCommand(move))
-    else undoManager.doStep(field, DoCommand(move))
+    revealValueApi(move) match {
+      case Some(updatedFieldJson) =>
+        field = field.jsonToField(updatedFieldJson)
+        field
+      case None =>
+        field
+    }
+
+  private def revealValueApi(move: Coordinates): Option[String] = {
+    val uri = new URI("http://localhost:8080/field/revealValue")
+    val url = uri.toURL
+    val connection = url.openConnection().asInstanceOf[HttpURLConnection]
+    connection.setRequestMethod("POST")
+    connection.setDoOutput(true)
+    connection.setRequestProperty("Content-Type", "application/json")
+
+    // Prepare the JSON payload with the move coordinates
+    val jsonPayload = Json.obj("x" -> move.x, "y" -> move.y).toString
+
+    // Send the POST request
+    val outputStream = connection.getOutputStream
+    outputStream.write(jsonPayload.getBytes("UTF-8"))
+    outputStream.close()
+
+    // Process the response
+    val responseCode = connection.getResponseCode
+    if (responseCode == HttpURLConnection.HTTP_OK) {
+      val inputStream = connection.getInputStream
+      val response = Source.fromInputStream(inputStream).getLines().mkString
+      inputStream.close()
+      Some(response)
+    } else {
+      println(s"Failed to reveal value on server: HTTP response code $responseCode")
+      None
+    }
+  }
 
   def undo: FieldInterface =
     undoManager.undoStep(field)
@@ -124,7 +158,42 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
     undoManager.noStep(field, DoCommand(move))
 
   def setFlag(coordinates: Coordinates): FieldInterface =
-    undoManager.doFlag(field, DoCommand(coordinates))
+    setFlagApi(coordinates) match {
+      case Some(updatedFieldJson) =>
+        field = field.jsonToField(updatedFieldJson)
+        field
+      case None =>
+        field
+    }
+
+  private def setFlagApi(coordinates: Coordinates): Option[String] = {
+    val uri = new URI("http://localhost:8080/field/setFlag")
+    val url = uri.toURL
+    val connection = url.openConnection().asInstanceOf[HttpURLConnection]
+    connection.setRequestMethod("POST")
+    connection.setDoOutput(true)
+    connection.setRequestProperty("Content-Type", "application/json")
+
+    // Prepare the JSON payload with the coordinates
+    val jsonPayload = Json.obj("x" -> coordinates.x, "y" -> coordinates.y).toString
+
+    // Send the POST request
+    val outputStream = connection.getOutputStream
+    outputStream.write(jsonPayload.getBytes("UTF-8"))
+    outputStream.close()
+
+    // Process the response
+    val responseCode = connection.getResponseCode
+    if (responseCode == HttpURLConnection.HTTP_OK) {
+      val inputStream = connection.getInputStream
+      val response = Source.fromInputStream(inputStream).getLines().mkString
+      inputStream.close()
+      Some(response)
+    } else {
+      println(s"Failed to set flag on server: HTTP response code $responseCode")
+      None
+    }
+  }
 
   def save: FieldInterface =
     saveApi()
@@ -153,7 +222,7 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
   def load: FieldInterface =
     loadApi match {
       case Some(loadedField) => loadedField
-      case None => field
+      case None              => field
     }
 
   private def loadApi: Option[FieldInterface] = {
@@ -178,7 +247,7 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
   def flagsLeft(): Int =
     flagsLeftApi match {
       case Some(flagsLeft) => flagsLeft
-      case None => 0
+      case None            => 0
     }
 
   private def flagsLeftApi: Option[Int] = {
