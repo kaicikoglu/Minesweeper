@@ -201,7 +201,7 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
 
   private def saveApi(): Unit =
     val jsonPayload = Json.obj("field" -> field.toJson).toString
-    val uri = new URI("http://localhost:8081/fileIo/save")
+    val uri = new URI("http://localhost:8081/fileIo")
     val url = uri.toURL
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("POST")

@@ -25,18 +25,6 @@ class PersistenceApi(var field: FieldInterface, var fileIO: FileIOInterface) {
         get {
           complete(fileIO.load.toJson.toString())
         }
-      } ~
-      path("save") {
-        post {
-          entity(as[String]) { json =>
-            val jsonValue: JsValue = Json.parse(json)
-            val fieldValue: String = (jsonValue \ "field").as[JsValue].toString()
-            field = field.jsonToField(fieldValue)
-            fileIO.save(field)
-            complete(field.toJson.toString())
-          }
-        }
       }
-
   }
 }
