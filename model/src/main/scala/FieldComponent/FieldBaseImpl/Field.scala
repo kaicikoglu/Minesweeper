@@ -218,8 +218,8 @@ case class Field(matrix: Matrix[Stone, Stone, Int]) extends FieldInterface:
         field = new Field(8, 8)
       case 16 =>
         field = new Field(16, 16)
-      case 32 =>
-        field = new Field(32, 16)
+      case 24 =>
+        field = new Field(24, 24)
     }
     for (index <- 0 until sizeRow * sizeCol)
       val row = (json \\ "row")(index).as[Int]

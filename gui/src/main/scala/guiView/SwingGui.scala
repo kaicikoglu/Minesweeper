@@ -54,7 +54,7 @@ class SwingGui(controller: ControllerInterface) extends Frame with Observer:
   open()
 
   def update(e: lib.Event): Unit =
-    if (controller.field.rows == 32)
+    if (controller.field.rows == 24)
       preferredSize = new Dimension(440, 880)
     else
       preferredSize = new Dimension(600, 600)
@@ -85,7 +85,7 @@ class SwingGui(controller: ControllerInterface) extends Frame with Observer:
       controller.field.rows match {
         case 8  => buttonIcon = ImageIO.read(new File("src/main/resources/iconsEasy/bomb.png"))
         case 16 => buttonIcon = ImageIO.read(new File("src/main/resources/iconsMedium/bomb.png"))
-        case 32 =>
+        case 24 =>
           buttonIcon = ImageIO.read(new File("src/main/resources/iconsHard/bomb.png"));
       }
       this.peer.setIcon(new ImageIcon(buttonIcon))
@@ -93,7 +93,7 @@ class SwingGui(controller: ControllerInterface) extends Frame with Observer:
       controller.field.rows match {
         case 8  => buttonIcon = ImageIO.read(new File("src/main/resources/iconsEasy/flagged.png"))
         case 16 => buttonIcon = ImageIO.read(new File("src/main/resources/iconsMedium/flagged.png"))
-        case 32 =>
+        case 24 =>
           buttonIcon = ImageIO.read(new File("src/main/resources/iconsHard/flagged.png"));
       }
       this.peer.setIcon(new ImageIcon(buttonIcon))
@@ -101,7 +101,7 @@ class SwingGui(controller: ControllerInterface) extends Frame with Observer:
       controller.field.rows match {
         case 8  => buttonIcon = ImageIO.read(new File("src/main/resources/iconsEasy/facingDown.png"))
         case 16 => buttonIcon = ImageIO.read(new File("src/main/resources/iconsMedium/facingDown.png"))
-        case 32 =>
+        case 24 =>
           buttonIcon = ImageIO.read(new File("src/main/resources/iconsHard/facingDown.png"))
           preferredSize.setSize(600, 1200);
       }
@@ -110,7 +110,7 @@ class SwingGui(controller: ControllerInterface) extends Frame with Observer:
       controller.field.rows match {
         case 8  => buttonIcon = ImageIO.read(new File("src/main/resources/iconsEasy/0.png"))
         case 16 => buttonIcon = ImageIO.read(new File("src/main/resources/iconsMedium/0.png"))
-        case 32 =>
+        case 24 =>
           buttonIcon = ImageIO.read(new File("src/main/resources/iconsHard/0.png"));
       }
       this.peer.setIcon(new ImageIcon(buttonIcon))
@@ -118,7 +118,7 @@ class SwingGui(controller: ControllerInterface) extends Frame with Observer:
       controller.field.rows match {
         case 8  => buttonIcon = ImageIO.read(new File("src/main/resources/iconsEasy/" + stone + ".png"))
         case 16 => buttonIcon = ImageIO.read(new File("src/main/resources/iconsMedium/" + stone + ".png"))
-        case 32 =>
+        case 24 =>
           buttonIcon = ImageIO.read(new File("src/main/resources/iconsHard/" + stone + ".png"));
       }
       this.peer.setIcon(new ImageIcon(buttonIcon))
