@@ -7,7 +7,6 @@ import FieldComponent.FieldBaseImpl.DifficultyFactory
 import FileIOComponent.FileIOInterface
 import FileIOComponent.fileIoJsonImpl.FileIOJson
 import FileIOComponent.fileIoXmlImpl.FileIOXml
-import controllerComponent.controllerBaseImpl.Controller
 
 class MinesweeperModuleEasy extends AbstractModule {
   override def configure(): Unit = {
