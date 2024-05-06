@@ -48,13 +48,6 @@ assembly / assemblyMergeStrategy := {
   case x                             => MergeStrategy.first
 }
 
-lazy val util = project
-  .in(file("util"))
-  .settings(
-    name := "util",
-    commonSettings
-  )
-
 lazy val model = project
   .in(file("model"))
   .settings(
@@ -78,7 +71,7 @@ lazy val core = project
     name := "core",
     commonSettings
   )
-  .dependsOn(model, persistence, util)
+  .dependsOn(model, persistence)
   .enablePlugins(JacocoCoverallsPlugin)
 
 lazy val tui = project
@@ -87,7 +80,7 @@ lazy val tui = project
     name := "tui",
     commonSettings
   )
-  .dependsOn(model, util, core)
+  .dependsOn(model, core)
   .enablePlugins(JacocoCoverallsPlugin)
 
 lazy val gui = project
@@ -96,7 +89,7 @@ lazy val gui = project
     name := "gui",
     commonSettings
   )
-  .dependsOn(model, util, core)
+  .dependsOn(model, core)
   .enablePlugins(JacocoCoverallsPlugin)
 
 lazy val root = project
@@ -106,4 +99,4 @@ lazy val root = project
     commonSettings
   )
   .enablePlugins(JacocoCoverallsPlugin)
-  .aggregate(util, model, persistence, core, tui, gui)
+  .aggregate(model, persistence, core, tui, gui)
