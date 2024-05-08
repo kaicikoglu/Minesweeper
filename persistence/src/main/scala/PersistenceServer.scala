@@ -14,6 +14,7 @@ object PersistenceServer {
   def main(args: Array[String]): Unit = {
     implicit val system: ActorSystem = ActorSystem("mySystem")
     implicit val executionContext: ExecutionContext = system.dispatcher
+    val host = "persistence-service"
     val port = 8081
 
     var gameField: FieldInterface = DifficultyFactory("1").run
@@ -25,12 +26,18 @@ object PersistenceServer {
     val routes: Route = fieldApi.routes
 
     //Start the server
-    val bindingFuture = Http().newServerAt("localhost", port).bind(routes)
+    val bindingFuture = Http().newServerAt(host, port).bind(routes)
+    println(s"Server online at http://$host:$port/")
+    while (true) {
+    }
 
-    println(s"Server online at http://localhost:$port/\nPress RETURN to stop...")
+/*
+    println(s"Server online at http://$host:$port/\nPress RETURN to stop...")
     StdIn.readLine()
     bindingFuture
       .flatMap(_.unbind())
       .onComplete(_ => system.terminate())
+
+ */
   }
 }

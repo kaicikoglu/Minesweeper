@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+
+  persistence:
+    build:
+      context: ./
+      dockerfile: persistence/Dockerfile
+    ports:
+      - "8081:8081"
+    stdin_open: true
+    tty: true
+    container_name: persistence-service
+    environment:
+      PERSISTENCE_SERVICE_HOST: persistence-service
+      PERSISTENCE_SERVICE_PORT: 8081
+    working_dir: /fileio
+    volumes:
+      - ./:/fileio
+
+  core:
+    build:
+      context: ./
+      dockerfile: core/Dockerfile
+    ports:
+      - "8082:8082"
+    stdin_open: true
+    tty: true
+    container_name: core-service
+    depends_on:
+      - persistence
+    environment:
+      CORE_SERVICE_HOST: core-service
+      CORE_SERVICE_PORT: 8082
+
+  model:
+    build:
+      context: ./
+      dockerfile: model/Dockerfile
+    ports:
+      - "8080:8080"
+    stdin_open: true
+    tty: true
+    container_name: model-service
+    depends_on:
+      - persistence
+    environment:
+      CORE_SERVICE_HOST: model-service
+      CORE_SERVICE_PORT: 8080

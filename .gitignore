@@ -38,3 +38,6 @@ null/
 .history
 .scala_dependencies
 .cache-main
+
+field.json
+field.xml
