@@ -1,0 +1,5 @@
+package DatabaseComponent
+
+trait UserDAO {
+
+}
