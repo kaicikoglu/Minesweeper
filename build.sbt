@@ -1,4 +1,4 @@
-val scala3Version = "3.3.1"
+val scala3Version = "3.3.3"
 
 lazy val commonSettings = Seq(
   version := "0.1.0-SNAPSHOT",
@@ -22,8 +22,14 @@ lazy val commonSettings = Seq(
     "com.typesafe.akka" %% "akka-http-spray-json" % "10.5.3",
     "com.typesafe.akka" %% "akka-actor-typed" % "2.8.5",
     "com.typesafe.akka" %% "akka-stream" % "2.8.5",
-    "com.typesafe.slick" %% "slick" % "3.3.3",
-    "org.slf4j" % "slf4j-nop" % "1.6.4"
+    "com.typesafe.slick" %% "slick" % "3.5.0",
+    "com.typesafe.slick" %% "slick-hikaricp" % "3.5.1",
+    "com.zaxxer" % "HikariCP" % "5.1.0",
+    "org.slf4j" % "slf4j-nop" % "2.0.13",
+    "com.h2database" % "h2" % "2.2.224" % Test,
+    "org.postgresql" % "postgresql" % "42.2.23",
+    "com.typesafe.slick" %% "slick-codegen" % "3.5.0", // Updated version
+    "com.typesafe" % "config" % "1.4.1",
   ),
   jacocoReportSettings := JacocoReportSettings(
     "Jacoco Coverage Report",
@@ -38,6 +44,10 @@ lazy val commonSettings = Seq(
     "*Minesweeper*",
     "*Coordinates*",
     "*Observer*"
+  ),
+  javaOptions ++= Seq(
+    "-Xms512M",
+    "-Xmx2G"
   )
 )
 
