@@ -5,7 +5,7 @@ lazy val commonSettings = Seq(
   scalaVersion := scala3Version,
   libraryDependencies += "org.scalameta" %% "munit" % "0.7.29" % Test,
   libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.18",
-  libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.18" % "test",
+  libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.18" % Test,
   libraryDependencies += ("org.scala-lang.modules" %% "scala-swing" % "3.0.0")
     .cross(CrossVersion.for3Use2_13),
   libraryDependencies += "org.apache.commons" % "commons-lang3" % "3.14.0",
@@ -21,13 +21,15 @@ lazy val commonSettings = Seq(
     "com.typesafe.akka" %% "akka-http" % "10.5.3",
     "com.typesafe.akka" %% "akka-http-spray-json" % "10.5.3",
     "com.typesafe.akka" %% "akka-actor-typed" % "2.8.5",
-    "com.typesafe.akka" %% "akka-stream" % "2.8.5"
+    "com.typesafe.akka" %% "akka-stream" % "2.8.5",
+    "com.typesafe.slick" %% "slick" % "3.3.3",
+    "org.slf4j" % "slf4j-nop" % "1.6.4"
   ),
   jacocoReportSettings := JacocoReportSettings(
     "Jacoco Coverage Report",
     None,
     JacocoThresholds(),
-    Seq(JacocoReportFormats.ScalaHTML, JacocoReportFormats.XML), // note XML formatter
+    Seq(JacocoReportFormats.ScalaHTML, JacocoReportFormats.XML),
     "utf-8"
   ),
   jacocoExcludes := Seq(
