@@ -13,7 +13,7 @@ object CoreServer {
   def main(args: Array[String]): Unit = {
     implicit val system: ActorSystem = ActorSystem("mySystem")
     implicit val executionContext: ExecutionContext = system.dispatcher
-    val host = "core-service"
+    val host = "localhost"
     val port = 8082
 
     val injector = Guice.createInjector(new MinesweeperModuleEasy)
