@@ -14,7 +14,7 @@ object PersistenceServer {
   def main(args: Array[String]): Unit = {
     implicit val system: ActorSystem = ActorSystem("mySystem")
     implicit val executionContext: ExecutionContext = system.dispatcher
-    val host = "persistence-service"
+    val host = "localhost"
     val port = 8081
 
     var gameField: FieldInterface = DifficultyFactory("1").run

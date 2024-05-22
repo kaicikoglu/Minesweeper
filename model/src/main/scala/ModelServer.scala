@@ -12,7 +12,7 @@ object ModelServer {
   def main(args: Array[String]): Unit = {
     implicit val system: ActorSystem = ActorSystem("mySystem")
     implicit val executionContext: ExecutionContext = system.dispatcher
-    val host = "model-service"
+    val host = "localhost"
     val port = 8080
 
     var gameField: FieldInterface = DifficultyFactory("1").run
