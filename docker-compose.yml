@@ -47,3 +47,16 @@ services:
     environment:
       CORE_SERVICE_HOST: model-service
       CORE_SERVICE_PORT: 8080
+
+  db:
+    image: postgres:latest
+    restart: always
+    container_name: database
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_HOST: database
+      POSTGRES_PORT: 5432
+    ports:
+      - "5432:5432"
