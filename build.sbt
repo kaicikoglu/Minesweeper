@@ -3,7 +3,7 @@ val scala3Version = "3.3.3"
 lazy val commonSettings = Seq(
   version := "0.1.0-SNAPSHOT",
   scalaVersion := scala3Version,
-  libraryDependencies += "org.scalameta" %% "munit" % "0.7.29" % Test,
+  libraryDependencies += "org.scalameta" %% "munit" % "1.0.0" % Test,
   libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.18",
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.18" % Test,
   libraryDependencies += ("org.scala-lang.modules" %% "scala-swing" % "3.0.0")
@@ -15,8 +15,10 @@ lazy val commonSettings = Seq(
   libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.3.0",
   libraryDependencies += ("com.typesafe.play" %% "play-json" % "2.10.5")
     .cross(CrossVersion.for3Use2_13),
-  libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.17.0",
+  libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.17.1",
   libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.17.0",
+  libraryDependencies += "org.reactivemongo" %% "reactivemongo" % "1.1.0-RC10",
+  libraryDependencies +=  "org.reactivemongo" %% "reactivemongo-play-json-compat" % "1.1.0-RC12.play29", // For Play 2.9.x (adjust accordingly)
   libraryDependencies ++= Seq(
     "com.typesafe.akka" %% "akka-http" % "10.5.3",
     "com.typesafe.akka" %% "akka-http-spray-json" % "10.5.3",
@@ -26,8 +28,8 @@ lazy val commonSettings = Seq(
     "com.zaxxer" % "HikariCP" % "5.1.0",
     "org.slf4j" % "slf4j-nop" % "2.0.13",
     "com.h2database" % "h2" % "2.2.224" % Test,
-    "org.postgresql" % "postgresql" % "42.2.23",
-    "com.typesafe" % "config" % "1.4.1",
+    "org.postgresql" % "postgresql" % "42.7.3",
+    "com.typesafe" % "config" % "1.4.3",
   ),
   jacocoReportSettings := JacocoReportSettings(
     "Jacoco Coverage Report",
