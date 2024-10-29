@@ -17,6 +17,8 @@ services:
     working_dir: /fileio
     volumes:
       - ./:/fileio
+    networks:
+      - app-network
 
   core:
     build:
@@ -29,9 +31,12 @@ services:
     container_name: core-service
     depends_on:
       - persistence
+      - model
     environment:
       CORE_SERVICE_HOST: core-service
       CORE_SERVICE_PORT: 8082
+    networks:
+      - app-network
 
   model:
     build:
@@ -47,6 +52,8 @@ services:
     environment:
       CORE_SERVICE_HOST: model-service
       CORE_SERVICE_PORT: 8080
+    networks:
+      - app-network
 
   db:
     image: postgres:latest
@@ -60,3 +67,9 @@ services:
       POSTGRES_PORT: 5432
     ports:
       - "5432:5432"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

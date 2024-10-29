@@ -18,28 +18,37 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
   private val undoManager = new UndoManager[FieldInterface]
   private val fileIO = file.getInstance(classOf[FileIOInterface])
 
-  def createNewField(string: String): FieldInterface =
+  def createNewField(string: String): FieldInterface = {
     string match {
       case "1" | "2" | "3" =>
         field = createNewFieldApi(string)
         field
+      case _ =>
+        throw new IllegalArgumentException(s"Invalid difficulty level: $string")
     }
+  }
 
   private def createNewFieldApi(difficulty: String): FieldInterface = {
-    val encodedDifficulty = URLEncoder.encode(difficulty, "UTF-8")
-    val uri = new URI(s"http://localhost:8080/field/createNew?x=$encodedDifficulty")
-    val url = uri.toURL
+    try {
+      val encodedDifficulty = URLEncoder.encode(difficulty, "UTF-8")
+      val uri = new URI(s"http://model-service:8080/field/createNew?x=$encodedDifficulty")
+      val url = uri.toURL
 
-    val connection = url.openConnection().asInstanceOf[HttpURLConnection]
-    connection.setRequestMethod("POST")
-    connection.setDoOutput(true)
+      val connection = url.openConnection().asInstanceOf[HttpURLConnection]
+      connection.setRequestMethod("POST")
+      connection.setDoOutput(true)
 
-    val inputStream = connection.getInputStream
-    val result = Source.fromInputStream(inputStream).mkString
-    inputStream.close()
+      val inputStream = connection.getInputStream
+      val result = Source.fromInputStream(inputStream).mkString
+      inputStream.close()
 
-    field = field.jsonToField(result)
-    field
+      field = field.jsonToField(result)
+      field
+    } catch {
+      case ex: Exception =>
+        println(s"Failed to create new field: ${ex.getMessage}")
+        field // Optionally, you might return a default or empty field here
+    }
   }
 
   def calculateBombAmount(): Int =
@@ -50,7 +59,7 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
     }
 
   private def calculateBombAmountApi: Option[Int] = {
-    val uri = new URI("http://localhost:8080/field/calculateBombs")
+    val uri = new URI("http://model-service:8080/field/calculateBombs")
     val url = uri.toURL
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("GET")
@@ -78,7 +87,7 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
     }
 
   private def setBombsApi(bombAmount: Int): Option[String] = {
-    val uri = new URI("http://localhost:8080/field/setBombs")
+    val uri = new URI("http://model-service:8080/field/setBombs")
     val url = uri.toURL
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("POST")
@@ -120,7 +129,7 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
     }
 
   private def revealValueApi(move: Coordinates): Option[String] = {
-    val uri = new URI("http://localhost:8080/field/revealValue")
+    val uri = new URI("http://model-service:8080/field/revealValue")
     val url = uri.toURL
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("POST")
@@ -167,7 +176,7 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
     }
 
   private def setFlagApi(coordinates: Coordinates): Option[String] = {
-    val uri = new URI("http://localhost:8080/field/setFlag")
+    val uri = new URI("http://model-service:8080/field/setFlag")
     val url = uri.toURL
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("POST")
@@ -199,25 +208,46 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
     saveApi()
     field
 
-  private def saveApi(): Unit =
+  private def saveApi(): Unit = {
+    // Prepare the JSON payload
     val jsonPayload = Json.obj("field" -> field.toJson).toString
-    val uri = new URI("http://localhost:8081/fileIo")
+    val uri = new URI("http://persistence-service:8081/fileIo")
     val url = uri.toURL
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
-    connection.setRequestMethod("POST")
-    connection.setDoOutput(true)
-    connection.setRequestProperty("Content-Type", "application/json")
 
-    val outputStream = connection.getOutputStream
-    outputStream.write(jsonPayload.getBytes("UTF-8"))
-    outputStream.close()
+    try {
+      // Set up the connection properties
+      connection.setRequestMethod("POST")
+      connection.setDoOutput(true)
+      connection.setRequestProperty("Content-Type", "application/json; utf-8")
+      connection.setRequestProperty("Accept", "application/json")
 
-    val responseCode = connection.getResponseCode
-    if (responseCode == HttpURLConnection.HTTP_OK) {
-      println("Field saved successfully")
-    } else {
-      println(s"Failed to save field to server: HTTP response code $responseCode")
+      // Write the JSON payload to the connection's output stream
+      val outputStream = connection.getOutputStream
+      outputStream.write(jsonPayload.getBytes("UTF-8"))
+      outputStream.flush()
+      outputStream.close()
+
+      // Read and process the server's response
+      val responseCode = connection.getResponseCode
+      if (responseCode == HttpURLConnection.HTTP_OK) {
+        println("Field saved successfully")
+      } else {
+        val errorStream = connection.getErrorStream
+        if (errorStream != null) {
+          val errorMessage = Source.fromInputStream(errorStream).mkString
+          println(s"Failed to save field: $errorMessage")
+        } else {
+          println(s"Failed to save field to server: HTTP response code $responseCode")
+        }
+      }
+    } catch {
+      case e: Exception =>
+        println(s"An error occurred while trying to save the field: ${e.getMessage}")
+    } finally {
+      connection.disconnect() // Ensure the connection is properly closed
     }
+  }
 
   def load: FieldInterface =
     loadApi match {
@@ -226,23 +256,55 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
     }
 
   private def loadApi: Option[FieldInterface] = {
-    val uri = new URI("http://localhost:8081/fileIo/load")
+    val uri = new URI("http://persistence-service:8081/fileIo/load")
     val url = uri.toURL
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
-    connection.setRequestMethod("GET")
 
-    val responseCode = connection.getResponseCode
-    if (responseCode == HttpURLConnection.HTTP_OK) {
-      val inputStream = connection.getInputStream
-      val response = Source.fromInputStream(inputStream).getLines().mkString
-      inputStream.close()
-      field = field.jsonToField(response)
-      Some(field)
-    } else {
-      println(s"Failed to load field from server: HTTP response code $responseCode")
-      None
+    try {
+      // Set up the connection properties
+      connection.setRequestMethod("GET")
+      connection.setRequestProperty("Accept", "application/json, text/plain")
+
+      // Get the response code and handle the response
+      val responseCode = connection.getResponseCode
+      if (responseCode == HttpURLConnection.HTTP_OK) {
+        // Check the Content-Type of the response
+        val contentType = connection.getContentType
+
+        // Read and handle the response based on Content-Type
+        val inputStream = connection.getInputStream
+        val response = Source.fromInputStream(inputStream).mkString
+        inputStream.close()
+
+        if (contentType.contains("application/json")) {
+          // Parse JSON response
+          field = field.jsonToField(response)
+          Some(field)
+        } else {
+          // Handle text/plain or other content types
+          println(s"Received non-JSON response: $response")
+          None
+        }
+      } else {
+        // Handle non-OK responses by reading the error stream if available
+        val errorStream = connection.getErrorStream
+        if (errorStream != null) {
+          val errorMessage = Source.fromInputStream(errorStream).mkString
+          println(s"Failed to load field: $errorMessage")
+        } else {
+          println(s"Failed to load field from server: HTTP response code $responseCode")
+        }
+        None
+      }
+    } catch {
+      case e: Exception =>
+        println(s"An error occurred while trying to load the field: ${e.getMessage}")
+        None
+    } finally {
+      connection.disconnect() // Ensure the connection is properly closed
     }
   }
+
 
   def flagsLeft(): Int =
     flagsLeftApi match {
@@ -251,7 +313,7 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
     }
 
   private def flagsLeftApi: Option[Int] = {
-    val uri = new URI(s"http://localhost:8080/field/flagsLeft")
+    val uri = new URI(s"http://model-service:8080/field/flagsLeft")
     val url = uri.toURL
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("GET")
@@ -281,7 +343,7 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
     }
 
   private def getCellApi(x: Int, y: Int): Option[String] = {
-    val uri = new URI(s"http://localhost:8080/field/getCell?x=$x&y=$y")
+    val uri = new URI(s"http://model-service:8080/field/getCell?x=$x&y=$y")
     val url = uri.toURL
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("GET")

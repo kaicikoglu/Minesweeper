@@ -229,7 +229,7 @@ case class Field(matrix: Matrix[Stone, Stone, Int]) extends FieldInterface:
       val third = (json \\ "third")(index).as[Int]
       field = field.setCell(row, col, (first, second, third))
     field
-  
+
   @tailrec
   private def setBombsR(bombNumber: Int, field: Field, count: Int = 0): Field =
     val row = r.nextInt(field.rows)

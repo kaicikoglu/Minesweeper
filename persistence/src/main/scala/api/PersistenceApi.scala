@@ -3,16 +3,23 @@ package api
 import DatabaseComponent.Slick.SlickUserDAO
 import FieldComponent.FieldInterface
 import FileIOComponent.FileIOInterface
+import akka.actor.ActorSystem
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.server.Directives.*
 import akka.http.scaladsl.server.Route
+import akka.stream.Materializer
 import org.slf4j.{Logger, LoggerFactory}
 import play.api.libs.json.{JsValue, Json}
 
-import scala.util.{Success, Failure}
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
-class PersistenceApi(var field: FieldInterface, var fileIO: FileIOInterface) {
-  private val logger: Logger = LoggerFactory.getLogger(this.getClass)
+class PersistenceApi(var field: FieldInterface, var fileIO: FileIOInterface)(implicit
+    val system: ActorSystem,
+    val materializer: Materializer
+) {
+
+  implicit val ec: ExecutionContext = system.dispatcher
   val routes: Route = pathPrefix("fileIo") {
     pathEnd {
       post {
@@ -21,42 +28,56 @@ class PersistenceApi(var field: FieldInterface, var fileIO: FileIOInterface) {
           val fieldValue: String = (jsonValue \ "field").as[JsValue].toString()
           field = field.jsonToField(fieldValue)
           fileIO.save(field)
-          
-          val db = SlickUserDAO()
-          db.dropTables().onComplete{
-            case Success(_) => 
-              logger.info("Tables dropped")
-            case Failure(exception) => 
-              logger.error("Tables could not be dropped", exception)
-          }
 
-          db.createTables().onComplete {
+          val db = new SlickUserDAO()
+
+          val dbOperations: Future[Unit] = for {
+            _ <- db.dropTables()
+            _ <- db.createTables()
+            _ <- db.save(fieldValue)
+          } yield ()
+
+          onComplete(dbOperations) {
             case Success(_) =>
-              logger.info("Tables created")
-              db.save(fieldValue).onComplete {
-                case Success(_) => logger.info("Field saved")
-                case Failure(exception) => logger.error("Field not saved", exception)
-              }
-
-            case Failure(exception) => logger.error("Tables not created", exception)
+              logger.info("Field saved to database")
+              complete(HttpEntity(ContentTypes.`application/json`, field.toJson.toString())) // Explicit JSON response
+            case Failure(exception) =>
+              logger.error("Error saving field to database", exception)
+              complete(
+                HttpEntity(
+                  ContentTypes.`application/json`,
+                  s"""{"error": "Failed to save field: ${exception.getMessage}"}"""
+                )
+              )
           }
-          
-          complete(field.toJson.toString())
         }
       }
     } ~
       path("load") {
         get {
-          val db = SlickUserDAO()
-          db.load().onComplete {
-            case Success(value) =>
-              field = field.jsonToField(value.get)
-              logger.info("Field loaded")
-            case Failure(exception) => logger.error("Field not loaded", exception)
+          val db = new SlickUserDAO()
+
+          onComplete(db.load()) {
+            case Success(Some(value)) =>
+              field = field.jsonToField(value)
+              logger.info("Field loaded from database")
+              complete(HttpEntity(ContentTypes.`application/json`, field.toJson.toString())) // Explicit JSON response
+
+            case Success(None) =>
+              logger.warn("No field found in database")
+              complete(HttpEntity(ContentTypes.`application/json`, """{"error": "No field found in database"}"""))
+
+            case Failure(exception) =>
+              logger.error("Error loading field from database", exception)
+              complete(
+                HttpEntity(
+                  ContentTypes.`application/json`,
+                  s"""{"error": "Failed to load field: ${exception.getMessage}"}"""
+                )
+              )
           }
-          
-          complete(fileIO.load.toJson.toString())
         }
       }
   }
+  private val logger: Logger = LoggerFactory.getLogger(this.getClass)
 }

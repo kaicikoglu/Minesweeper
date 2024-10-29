@@ -4,7 +4,7 @@ import DatabaseComponent.Slick.Tables.{FieldTable, GridTable}
 import DatabaseComponent.UserDAO
 import play.api.libs.json.{JsValue, Json}
 import slick.jdbc.JdbcBackend.Database
-import slick.jdbc.PostgresProfile.api._
+import slick.jdbc.PostgresProfile.api.*
 import slick.lifted.TableQuery
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -18,7 +18,8 @@ class SlickUserDAO extends UserDAO {
   private val databasePassword: String = sys.env.getOrElse("POSTGRES_PASSWORD", "postgres")
   private val databasePort: String = sys.env.getOrElse("POSTGRES_PORT", "5432")
   private val databaseHost: String = sys.env.getOrElse("POSTGRES_HOST", "database")
-  private val databaseUrl = s"jdbc:postgresql://$databaseHost:$databasePort/$databaseDB?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&autoReconnect=true"
+  private val databaseUrl =
+    s"jdbc:postgresql://$databaseHost:$databasePort/$databaseDB?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&autoReconnect=true"
 
   val database = Database.forURL(
     url = databaseUrl,
@@ -27,21 +28,21 @@ class SlickUserDAO extends UserDAO {
     password = databasePassword
   )
 
-  val grid = TableQuery[GridTable]
   val field = TableQuery[FieldTable]
+  private val grid = TableQuery[GridTable]
 
   def createTables(): Future[Unit] = {
     val createGridTableAction = grid.schema.createIfNotExists
     val createFieldTableAction = field.schema.createIfNotExists
 
-    val combinedAction = DBIO.seq(
-      createGridTableAction,
-      createFieldTableAction
-    )
+    val combinedAction = for {
+      _ <- createGridTableAction
+      _ <- createFieldTableAction
+    } yield ()
 
     database.run(combinedAction)
   }
-  
+
   def dropTables(): Future[Unit] = {
     val dropFieldTableAction = field.schema.dropIfExists
     val dropGridTableAction = grid.schema.dropIfExists
@@ -52,20 +53,6 @@ class SlickUserDAO extends UserDAO {
     )
 
     database.run(combinedAction)
-  }
-
-  private def insertBoard(sizeRow: Int, sizeCol: Int): Future[Int] = {
-    database.run((grid returning grid.map(_.gridId)) += (0, sizeRow, sizeCol))
-  }
-
-  private def insertCells(gridId: Int, fieldCells: Seq[JsValue]): Future[Option[Int]] = {
-    val fieldInsertions = fieldCells.map { cell =>
-      val r = (cell \ "row").as[Int]
-      val c = (cell \ "col").as[Int]
-      val stone = (cell \ "cell").as[String]
-      (0, gridId, r, c, stone) // Correcting to match the FieldTable schema
-    }
-    database.run(field ++= fieldInsertions)
   }
 
   def save(game: String): Future[Int] = {
@@ -84,21 +71,61 @@ class SlickUserDAO extends UserDAO {
     }
   }
 
+  private def insertBoard(sizeRow: Int, sizeCol: Int): Future[Int] = {
+    database.run((grid returning grid.map(_.gridId)) += (0, sizeRow, sizeCol))
+  }
+
+  private def insertCells(gridId: Int, fieldCells: Seq[JsValue]): Future[Option[Int]] = {
+    val fieldInsertions = fieldCells.map { cell =>
+      val r = (cell \ "row").as[Int]
+      val c = (cell \ "col").as[Int]
+      val first = (cell \ "cell" \ "first").as[String]
+      val second = (cell \ "cell" \ "second").as[String]
+      val third = (cell \ "cell" \ "third").as[Int]
+      (0, gridId, r, c, first, second, third) // Updated to match the FieldTable schema
+    }
+    database.run(field ++= fieldInsertions)
+  }
+
   def load(): Future[Option[String]] = {
-    val loadGrids = grid.result
+    val loadGrids = grid.result.headOption
     val loadFields = field.result
 
     for {
-      grids <- database.run(loadGrids)
+      gridOpt <- database.run(loadGrids)
       fields <- database.run(loadFields)
     } yield {
-      val data = Map(
-        "grids" -> Json.toJson(grids),
-        "fields" -> Json.toJson(fields)
-      )
-      Some(Json.stringify(Json.toJson(data)))
+      gridOpt match {
+
+        case Some((_, sizeRow, sizeCol)) =>
+          // Map fields data to JSON structure
+          val cellsJson = fields.map { case (_, _, row, col, first, second, third) =>
+            Json.obj(
+              "row" -> row,
+              "col" -> col,
+              "cell" -> Json.obj(
+                "first" -> first,
+                "second" -> second,
+                "third" -> third
+              )
+            )
+          }
+          // Construct JSON with top-level "field" key
+          val fieldJson = Json.obj(
+            "field" -> Json.obj(
+              "sizeRow" -> sizeRow,
+              "sizeCol" -> sizeCol,
+              "cells" -> cellsJson
+            )
+          )
+          Some(Json.stringify(fieldJson))
+
+        case None =>
+          None // No grid found, return None
+      }
     }
   }
+
 
   def closeDatabase(): Unit = {
     database.close()

@@ -34,7 +34,7 @@ class CoreApi(var controller: ControllerInterface) {
       path("reveal") {
         post {
           entity(as[String]) { json =>
-            val coordinates = parseCoordinates(json)
+            val coordinates = parseCoordinatesReveal(json)
             complete(controller.revealValue(coordinates).toString)
           }
         }
@@ -42,23 +42,71 @@ class CoreApi(var controller: ControllerInterface) {
       path("setFlag") {
         post {
           entity(as[String]) { json =>
-            val coordinates = parseCoordinates(json)
+            val coordinates = parseCoordinatesFlag(json)
             complete(controller.setFlag(coordinates).toString)
           }
         }
       } ~
-      path("flagsLeft"){
+      path("flagsLeft") {
         get {
-            complete(controller.flagsLeft().toString)
+          complete(controller.flagsLeft().toString)
+        }
+      } ~
+      path("createNewField") {
+        parameter("difficulty") { difficulty =>
+          post {
+            complete(controller.createNewField(difficulty).toString)
+          }
+        }
+      } ~
+      // Endpoint to calculate the bomb amount for the current game
+      path("calculateBombAmount") {
+        get {
+          complete(controller.calculateBombAmount().toString)
+        }
+      } ~
+      // Endpoint to set bombs in the field
+      path("setBombs") {
+        post {
+          entity(as[String]) { json =>
+            val bombAmount = (Json.parse(json) \ "bombAmount").as[Int]
+            complete(controller.setBombs(bombAmount).toString)
+          }
+        }
+      } ~
+      // Endpoint to get cell information
+      path("getCell") {
+        parameters("x".as[Int], "y".as[Int]) { (x, y) =>
+          get {
+            val cellInfo = controller.getCell(x, y)
+            complete(
+              Json
+                .obj(
+                  "first" -> cellInfo._1.toString,
+                  "second" -> cellInfo._2.toString,
+                  "third" -> cellInfo._3
+                )
+                .toString()
+            )
+          }
         }
       }
   }
 
-  private def parseCoordinates(json: String): Coordinates = {
+  // Helper function to parse coordinates
+  private def parseCoordinatesFlag(json: String): Coordinates = {
     val parsedJson = Json.parse(json)
     val x = (parsedJson \ "x").as[Int]
     val y = (parsedJson \ "y").as[Int]
     val f = (parsedJson \ "f").as[String]
     Coordinates(x, y, f.toCharArray.head)
+  }
+
+  // Helper function to parse coordinates
+  private def parseCoordinatesReveal(json: String): Coordinates = {
+    val parsedJson = Json.parse(json)
+    val x = (parsedJson \ "x").as[Int]
+    val y = (parsedJson \ "y").as[Int]
+    Coordinates(x, y, ' ')
   }
 }

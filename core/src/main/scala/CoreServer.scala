@@ -13,7 +13,7 @@ object CoreServer {
   def main(args: Array[String]): Unit = {
     implicit val system: ActorSystem = ActorSystem("mySystem")
     implicit val executionContext: ExecutionContext = system.dispatcher
-    val host = "localhost"
+    val host = "core-service"
     val port = 8082
 
     val injector = Guice.createInjector(new MinesweeperModuleEasy)
@@ -26,11 +26,5 @@ object CoreServer {
     println(s"Server online at http://$host:$port/")
     while (true) {
     }
-    /*
-    println(s"Controller Server online at http://localhost:$port/\nPress Return to stop...")
-    StdIn.readLine()
-    bindingFuture.flatMap(_.unbind()).onComplete(_ => system.terminate())
-
-     */
   }
 }
