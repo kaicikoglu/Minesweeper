@@ -1,6 +1,7 @@
 package api
 
 import DatabaseComponent.Slick.SlickUserDAO
+import DatabaseComponent.UserDAO
 import FieldComponent.FieldInterface
 import FileIOComponent.FileIOInterface
 import akka.actor.ActorSystem
@@ -8,6 +9,8 @@ import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.server.Directives.*
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
+import com.google.inject.{Guice, Injector}
+import module.PersistenceModule
 import org.slf4j.{Logger, LoggerFactory}
 import play.api.libs.json.{JsValue, Json}
 
@@ -19,6 +22,8 @@ class PersistenceApi(var field: FieldInterface, var fileIO: FileIOInterface)(imp
     val materializer: Materializer
 ) {
 
+  val injector: Injector = Guice.createInjector(new PersistenceModule)
+
   implicit val ec: ExecutionContext = system.dispatcher
   val routes: Route = pathPrefix("fileIo") {
     pathEnd {
@@ -29,11 +34,11 @@ class PersistenceApi(var field: FieldInterface, var fileIO: FileIOInterface)(imp
           field = field.jsonToField(fieldValue)
           fileIO.save(field)
 
-          val db = new SlickUserDAO()
+          val db = injector.getInstance(classOf[UserDAO])
 
           val dbOperations: Future[Unit] = for {
-            _ <- db.dropTables()
-            _ <- db.createTables()
+            _ <- db.delete()
+            _ <- db.create()
             _ <- db.save(fieldValue)
           } yield ()
 
@@ -55,7 +60,7 @@ class PersistenceApi(var field: FieldInterface, var fileIO: FileIOInterface)(imp
     } ~
       path("load") {
         get {
-          val db = new SlickUserDAO()
+          val db = injector.getInstance(classOf[UserDAO])
 
           onComplete(db.load()) {
             case Success(Some(value)) =>

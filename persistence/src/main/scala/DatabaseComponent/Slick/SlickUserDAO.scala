@@ -13,13 +13,15 @@ import scala.util.{Failure, Success, Try}
 
 class SlickUserDAO extends UserDAO {
 
+  val field = TableQuery[FieldTable]
   private val databaseDB: String = sys.env.getOrElse("POSTGRES_DATABASE", "postgres")
   private val databaseUser: String = sys.env.getOrElse("POSTGRES_USER", "postgres")
   private val databasePassword: String = sys.env.getOrElse("POSTGRES_PASSWORD", "postgres")
   private val databasePort: String = sys.env.getOrElse("POSTGRES_PORT", "5432")
-  private val databaseHost: String = sys.env.getOrElse("POSTGRES_HOST", "database")
+  private val databaseHost: String = sys.env.getOrElse("POSTGRES_HOST", "postgresdb")
   private val databaseUrl =
     s"jdbc:postgresql://$databaseHost:$databasePort/$databaseDB?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&autoReconnect=true"
+  private val grid = TableQuery[GridTable]
 
   val database = Database.forURL(
     url = databaseUrl,
@@ -28,10 +30,7 @@ class SlickUserDAO extends UserDAO {
     password = databasePassword
   )
 
-  val field = TableQuery[FieldTable]
-  private val grid = TableQuery[GridTable]
-
-  def createTables(): Future[Unit] = {
+  def create(): Future[Unit] = {
     val createGridTableAction = grid.schema.createIfNotExists
     val createFieldTableAction = field.schema.createIfNotExists
 
@@ -43,7 +42,7 @@ class SlickUserDAO extends UserDAO {
     database.run(combinedAction)
   }
 
-  def dropTables(): Future[Unit] = {
+  def delete(): Future[Unit] = {
     val dropFieldTableAction = field.schema.dropIfExists
     val dropGridTableAction = grid.schema.dropIfExists
 
@@ -125,7 +124,6 @@ class SlickUserDAO extends UserDAO {
       }
     }
   }
-
 
   def closeDatabase(): Unit = {
     database.close()

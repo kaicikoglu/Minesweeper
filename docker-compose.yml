@@ -55,10 +55,10 @@ services:
     networks:
       - app-network
 
-  db:
+  postgresdb:
     image: postgres:latest
     restart: always
-    container_name: database
+    container_name: postgresdb
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -69,6 +69,19 @@ services:
       - "5432:5432"
     networks:
       - app-network
+
+  mongodb:
+    image: mongo:latest
+    restart: always
+    container_name: mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: mongo
+      MONGO_INITDB_DATABASE: mongo
+    ports:
+      - "27017:27017"
+    networks:
+        - app-network
 
 networks:
   app-network:
