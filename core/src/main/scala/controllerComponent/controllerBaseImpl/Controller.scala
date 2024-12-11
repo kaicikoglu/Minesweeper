@@ -7,6 +7,7 @@ import FileIOComponent.fileIoJsonImpl.FileIOJson
 import com.google.inject.{Guice, Inject, Injector}
 import controllerComponent.ControllerInterface
 import controllerComponent.controllerBaseImpl.*
+import lib.Servers.{modelServer, persistenceServer}
 import lib.{Event, Observable, UndoManager}
 import play.api.libs.json.{JsObject, JsValue, Json}
 
@@ -31,7 +32,7 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
   private def createNewFieldApi(difficulty: String): FieldInterface = {
     try {
       val encodedDifficulty = URLEncoder.encode(difficulty, "UTF-8")
-      val uri = new URI(s"http://model-service:8080/field/createNew?x=$encodedDifficulty")
+      val uri = new URI(s"http://$modelServer/field/createNew?x=$encodedDifficulty")
       val url = uri.toURL
 
       val connection = url.openConnection().asInstanceOf[HttpURLConnection]
@@ -59,7 +60,7 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
     }
 
   private def calculateBombAmountApi: Option[Int] = {
-    val uri = new URI("http://model-service:8080/field/calculateBombs")
+    val uri = new URI(s"http://$modelServer/field/calculateBombs")
     val url = uri.toURL
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("GET")
@@ -87,7 +88,7 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
     }
 
   private def setBombsApi(bombAmount: Int): Option[String] = {
-    val uri = new URI("http://model-service:8080/field/setBombs")
+    val uri = new URI(s"http://$modelServer/field/setBombs")
     val url = uri.toURL
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("POST")
@@ -129,7 +130,7 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
     }
 
   private def revealValueApi(move: Coordinates): Option[String] = {
-    val uri = new URI("http://model-service:8080/field/revealValue")
+    val uri = new URI(s"http://$modelServer/field/revealValue")
     val url = uri.toURL
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("POST")
@@ -176,7 +177,7 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
     }
 
   private def setFlagApi(coordinates: Coordinates): Option[String] = {
-    val uri = new URI("http://model-service:8080/field/setFlag")
+    val uri = new URI(s"http://$modelServer/field/setFlag")
     val url = uri.toURL
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("POST")
@@ -211,7 +212,7 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
   private def saveApi(): Unit = {
     // Prepare the JSON payload
     val jsonPayload = Json.obj("field" -> field.toJson).toString
-    val uri = new URI("http://persistence-service:8081/fileIo")
+    val uri = new URI(s"http://$persistenceServer/fileIo")
     val url = uri.toURL
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
 
@@ -256,7 +257,7 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
     }
 
   private def loadApi: Option[FieldInterface] = {
-    val uri = new URI("http://persistence-service:8081/fileIo/load")
+    val uri = new URI(s"http://$persistenceServer/fileIo/load")
     val url = uri.toURL
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
 
@@ -313,7 +314,7 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
     }
 
   private def flagsLeftApi: Option[Int] = {
-    val uri = new URI(s"http://model-service:8080/field/flagsLeft")
+    val uri = new URI(s"http://$modelServer/field/flagsLeft")
     val url = uri.toURL
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("GET")
@@ -343,7 +344,7 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
     }
 
   private def getCellApi(x: Int, y: Int): Option[String] = {
-    val uri = new URI(s"http://model-service:8080/field/getCell?x=$x&y=$y")
+    val uri = new URI(s"http://$modelServer/field/getCell?x=$x&y=$y")
     val url = uri.toURL
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("GET")

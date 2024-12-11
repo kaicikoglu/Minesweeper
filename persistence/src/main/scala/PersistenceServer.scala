@@ -6,6 +6,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Route
 import api.PersistenceApi
+import lib.Servers.persistenceServer
 
 import scala.concurrent.ExecutionContext
 
@@ -13,8 +14,10 @@ object PersistenceServer {
   def main(args: Array[String]): Unit = {
     implicit val system: ActorSystem = ActorSystem("mySystem")
     implicit val executionContext: ExecutionContext = system.dispatcher
-    val host = "persistence-service"
-    val port = 8081
+
+    val persistenceServerParts = persistenceServer.split(":")
+    val host = persistenceServerParts(0)
+    val port = persistenceServerParts(1).toInt
 
     var gameField: FieldInterface = DifficultyFactory("1").run
     gameField = gameField.setBombs(gameField.calculateBombAmount())

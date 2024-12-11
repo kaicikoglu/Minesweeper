@@ -5,16 +5,18 @@ import api.CoreApi
 import com.google.inject.Guice
 import controllerComponent.ControllerInterface
 import controllerComponent.controllerBaseImpl.MinesweeperModuleEasy
+import lib.Servers.coreServer
 
 import scala.concurrent.ExecutionContext
-import scala.io.StdIn
 
 object CoreServer {
   def main(args: Array[String]): Unit = {
     implicit val system: ActorSystem = ActorSystem("mySystem")
     implicit val executionContext: ExecutionContext = system.dispatcher
-    val host = "core-service"
-    val port = 8082
+
+    val coreServerParts = coreServer.split(":")
+    val host = coreServerParts(0)
+    val port = coreServerParts(1).toInt
 
     val injector = Guice.createInjector(new MinesweeperModuleEasy)
     val controller = injector.getInstance(classOf[ControllerInterface])

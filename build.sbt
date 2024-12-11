@@ -1,5 +1,19 @@
 val scala3Version = "3.3.3"
 
+val gatlingExclude = Seq(
+  ExclusionRule("com.typesafe.akka", "akka-actor_2.13"),
+  ExclusionRule("org.scala-lang.modules", "scala-java8-compat_2.13"),
+  ExclusionRule("com.typesafe.akka", "akka-slf4j_2.13")
+)
+
+val gatlingHigh = "io.gatling.highcharts" % "gatling-charts-highcharts" % "3.11.3" % "test" excludeAll (gatlingExclude*)
+val gatlingTest = "io.gatling" % "gatling-test-framework" % "3.11.3" % "test" excludeAll (gatlingExclude*)
+
+lazy val gatlingDependencies = Seq(
+  gatlingHigh,
+  gatlingTest
+)
+
 lazy val commonSettings = Seq(
   version := "0.1.0-SNAPSHOT",
   scalaVersion := scala3Version,
@@ -30,6 +44,7 @@ lazy val commonSettings = Seq(
     ("org.mongodb.scala" %% "mongo-scala-driver" % "5.1.0")
       .cross(CrossVersion.for3Use2_13)
   ),
+  libraryDependencies ++= gatlingDependencies,
   jacocoReportSettings := JacocoReportSettings(
     "Jacoco Coverage Report",
     None,
@@ -52,12 +67,13 @@ lazy val commonSettings = Seq(
 
 Compile / unmanagedResourceDirectories += baseDirectory.value / "src" / "main" / "resources"
 
-assembly / assemblyJarName := "Minesweeper-assembly-0.1.0-SNAPSHOT.jar"
+sbtassembly.AssemblyPlugin.autoImport.assembly / assemblyJarName := "Minesweeper-assembly-0.1.0-SNAPSHOT.jar"
 
-assembly / assemblyMergeStrategy := {
+sbtassembly.AssemblyPlugin.autoImport.assembly / assemblyMergeStrategy := {
   case PathList("META-INF", xs @ _*) => MergeStrategy.discard
   case x                             => MergeStrategy.first
 }
+
 
 lazy val model = project
   .in(file("model"))
@@ -74,7 +90,7 @@ lazy val persistence = project
     commonSettings
   )
   .dependsOn(model)
-  .enablePlugins(JacocoCoverallsPlugin)
+  .enablePlugins(JacocoCoverallsPlugin, GatlingPlugin)
 
 lazy val core = project
   .in(file("core"))
@@ -109,5 +125,5 @@ lazy val root = project
     name := "Minesweeper",
     commonSettings
   )
-  .enablePlugins(JacocoCoverallsPlugin)
+  .enablePlugins(JacocoCoverallsPlugin, GatlingPlugin)
   .aggregate(model, persistence, core, tui, gui)
