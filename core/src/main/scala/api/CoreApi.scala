@@ -39,6 +39,14 @@ class CoreApi(var controller: ControllerInterface) {
           }
         }
       } ~
+      path("doAndPublish") {
+        post {
+          entity(as[String]) { json =>
+            val coordinates = parseCoordinatesReveal(json)
+            complete(controller.doAndPublish(coordinates).toString)
+          }
+        }
+      } ~
       path("setFlag") {
         post {
           entity(as[String]) { json =>

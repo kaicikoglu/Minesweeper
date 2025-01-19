@@ -6,7 +6,7 @@ import lib.Observable
 import play.api.libs.json.JsObject
 
 trait ControllerInterface extends Observable:
-  def doAndPublish(doThis: Coordinates => FieldInterface, coordinates: Coordinates): Unit
+  def doAndPublish(coordinates: Coordinates): FieldInterface
   def doAndPublish(doThis: => FieldInterface): Unit
   def quit(): Unit
   def calculateBombAmount(): Int

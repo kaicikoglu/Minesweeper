@@ -6,8 +6,8 @@ val gatlingExclude = Seq(
   ExclusionRule("com.typesafe.akka", "akka-slf4j_2.13")
 )
 
-val gatlingHigh = "io.gatling.highcharts" % "gatling-charts-highcharts" % "3.11.3" % "test" excludeAll (gatlingExclude*)
-val gatlingTest = "io.gatling" % "gatling-test-framework" % "3.11.3" % "test" excludeAll (gatlingExclude*)
+val gatlingHigh = "io.gatling.highcharts" % "gatling-charts-highcharts" % "3.11.3" % "test" excludeAll (gatlingExclude *)
+val gatlingTest = "io.gatling" % "gatling-test-framework" % "3.11.3" % "test" excludeAll (gatlingExclude *)
 
 lazy val gatlingDependencies = Seq(
   gatlingHigh,
@@ -35,7 +35,8 @@ lazy val commonSettings = Seq(
     "com.typesafe.akka" %% "akka-http" % "10.5.3",
     "com.typesafe.akka" %% "akka-http-spray-json" % "10.5.3",
     "com.typesafe.akka" %% "akka-actor-typed" % "2.8.5",
-    "com.typesafe.akka" %% "akka-stream" % "2.8.5"
+    "com.typesafe.akka" %% "akka-stream" % "2.8.5",
+    "com.typesafe.akka" %% "akka-stream-kafka" % "4.0.2",
   ),
   libraryDependencies ++= Seq(
     "com.typesafe.slick" %% "slick" % "3.5.0",
@@ -45,6 +46,10 @@ lazy val commonSettings = Seq(
       .cross(CrossVersion.for3Use2_13)
   ),
   libraryDependencies ++= gatlingDependencies,
+  libraryDependencies ++= Seq(
+    ("org.apache.kafka" %% "kafka-streams-scala" % "3.7.0").cross(CrossVersion.for3Use2_13),
+    "org.apache.kafka" % "kafka-clients" % "3.7.0"
+  ),
   jacocoReportSettings := JacocoReportSettings(
     "Jacoco Coverage Report",
     None,
@@ -70,8 +75,8 @@ Compile / unmanagedResourceDirectories += baseDirectory.value / "src" / "main" /
 sbtassembly.AssemblyPlugin.autoImport.assembly / assemblyJarName := "Minesweeper-assembly-0.1.0-SNAPSHOT.jar"
 
 sbtassembly.AssemblyPlugin.autoImport.assembly / assemblyMergeStrategy := {
-  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
-  case x                             => MergeStrategy.first
+  case PathList("META-INF", xs@_*) => MergeStrategy.discard
+  case x => MergeStrategy.first
 }
 
 

@@ -7,14 +7,17 @@ import FileIOComponent.fileIoJsonImpl.FileIOJson
 import com.google.inject.{Guice, Inject, Injector}
 import controllerComponent.ControllerInterface
 import controllerComponent.controllerBaseImpl.*
+import kafkaProducer.Producer
 import lib.Servers.{modelServer, persistenceServer}
 import lib.{Event, Observable, UndoManager}
+import org.apache.kafka.clients.producer.ProducerRecord
 import play.api.libs.json.{JsObject, JsValue, Json}
 
 import java.net.{HttpURLConnection, URI, URLEncoder}
+import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
-case class Controller @Inject() (var field: FieldInterface) extends ControllerInterface with Observable:
+case class Controller @Inject()(var field: FieldInterface) extends ControllerInterface with Observable:
   val file: Injector = Guice.createInjector(new MinesweeperJson)
   private val undoManager = new UndoManager[FieldInterface]
   private val fileIO = file.getInstance(classOf[FileIOInterface])
@@ -110,13 +113,28 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
     }
   }
 
-  def doAndPublish(doThis: Coordinates => FieldInterface, coordinates: Coordinates): Unit =
-    field = doThis(coordinates)
-    notifyObservers(Event.Move)
+  def doAndPublish(coordinates: Coordinates): FieldInterface =
+    field = revealValue(coordinates)
+
+    val records = new ListBuffer[ProducerRecord[String, String]]()
+
+    records += new ProducerRecord("field-topic", "rows", field.rows.toString)
+    records += new ProducerRecord("field-topic", "cols", field.cols.toString)
+
+    for (i <- 0 until field.rows)
+      for (j <- 0 until field.cols)
+        records += new ProducerRecord("field-topic", s"$i-$j", field.getCell(i, j).toString())
+
+    records += new ProducerRecord("field-topic", "end", "end")
+
+    Producer(records)
+    field
+
+    // notifyObservers(Event.Move)
 
   def doAndPublish(doThis: => FieldInterface): Unit =
     field = doThis
-    notifyObservers(Event.Move)
+    // notifyObservers(Event.Move)
 
   def quit(): Unit = notifyObservers(Event.Quit)
 
@@ -253,7 +271,7 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
   def load: FieldInterface =
     loadApi match {
       case Some(loadedField) => loadedField
-      case None              => field
+      case None => field
     }
 
   private def loadApi: Option[FieldInterface] = {
@@ -310,7 +328,7 @@ case class Controller @Inject() (var field: FieldInterface) extends ControllerIn
   def flagsLeft(): Int =
     flagsLeftApi match {
       case Some(flagsLeft) => flagsLeft
-      case None            => 0
+      case None => 0
     }
 
   private def flagsLeftApi: Option[Int] = {

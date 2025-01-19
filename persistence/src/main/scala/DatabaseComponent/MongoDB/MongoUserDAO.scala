@@ -1,6 +1,7 @@
 package DatabaseComponent.MongoDB
 
 import DatabaseComponent.UserDAO
+import lib.Servers.mongoServer
 import org.mongodb.scala.{Document, MongoClient, MongoCollection, MongoDatabase, SingleObservableFuture}
 import play.api.libs.json.Json
 
@@ -9,12 +10,15 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 class MongoUserDAO extends UserDAO {
+  private val mongoServerParts = mongoServer.split(":")
+  private val host = mongoServerParts(0)
+  private val port = mongoServerParts(1)
 
   private val databaseDB: String = sys.env.getOrElse("MONGO_DB", "mongo")
   private val databaseUser: String = sys.env.getOrElse("MONGO_USERNAME", "root")
   private val databasePassword: String = sys.env.getOrElse("MONGO_PASSWORD", "mongo")
-  private val databasePort: String = sys.env.getOrElse("MONGO_PORT", "27017")
-  private val databaseHost: String = sys.env.getOrElse("MONGO_HOST", "mongodb")
+  private val databasePort: String = sys.env.getOrElse("MONGO_PORT", port)
+  private val databaseHost: String = sys.env.getOrElse("MONGO_HOST", host)
 
   private val databaseURI: String =
     s"mongodb://$databaseUser:$databasePassword@$databaseHost:$databasePort/?authSource=admin"
@@ -45,7 +49,7 @@ class MongoUserDAO extends UserDAO {
   override def load(): Future[Option[String]] = {
     gameCollection.find().sort(Document("_id" -> -1)).first().toFuture().map {
       case null => None
-      case doc  => Some(doc.toJson()) // Return the JSON representation as a string
+      case doc => Some(doc.toJson()) // Return the JSON representation as a string
     }
   }
 
